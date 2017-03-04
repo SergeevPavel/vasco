@@ -19,11 +19,34 @@ library(DT)
 source('difGenes.R')
 print('starting server')
 
+# update_figure <- function(){
+#   output$tSNEPlot <- renderPlotly({
+#     # size of the bins depend on the input 'bins'
+#     plot_ly(tsne, x = ~tSNE_1, y = ~tSNE_2, text = ~barcode, color = ~id, key = ~barcode, source= 'hede') %>%
+#       layout(
+#         dragmode = "select",
+#         xaxis = list(title = tsne_xlab),
+#         yaxis = list(title = tsne_ylab)
+#       )
+#   })
+#   
+#   update_figure <- NULL
+#   
+# }
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   rValues = reactiveValues(selected_vector1 = NULL,
                            selected_vector2 = NULL,
-                           tsne = tsne)
+                           tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
+                                           col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+                                           col_types = cols(id = col_character())
+                           ),
+                           genes = read_tsv('Data/redstone_1_genes.tsv', skip= 1,
+                                           col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+                                           col_types = cols(id = col_character())
+                           )
+                           )
+  
 
   #check if came from previous compare tab
   query_vals <- reactive({session$clientData$url_search
@@ -431,12 +454,14 @@ shinyServer(function(input, output, session) {
     print('drawing gene plots')
 
     isolate(input$input_genes)
+    print('drawing gene plots1')
     })
   output$geneExprPlot <- renderUI({
     plot_output_list <- lapply(1:length(geneExpr_genes()), function(i) {
       plotname <- paste("plot", i, sep="")
       plotlyOutput(plotname)
     })
+    print('drawing gene plots2')
     # Convert the list to a tagList - this is necessary for the list of items
     # to display properly.
     do.call(tagList, plot_output_list)
@@ -457,6 +482,7 @@ shinyServer(function(input, output, session) {
     # of i in the renderPlot() will be the same across all instances, because
     # of when the expression is evaluated.
     local({
+      
       my_i <- i
       plotname <- paste("plot", my_i, sep="")
 
@@ -475,6 +501,8 @@ shinyServer(function(input, output, session) {
   }
 
   output$geneExprGeneCluster <- renderPlotly({
+    print('drawing gene plots4')
+    
     gene_of_interest <- parse_gene_input(geneExpr_genes())
     gene_name <- parse_gene_input(geneExpr_genes(), get="name")
     plot_geneExprGeneCluster(gene_of_interest, gene_name,tsne = rValues$tsne)
@@ -510,8 +538,42 @@ shinyServer(function(input, output, session) {
       print('data reading complete')
       updateTabsetPanel(session, inputId = 'main_panel', 'Summary')
       
+      
+      
     }
     
+    
+      
+  })
+  
+  
+  observeEvent(input$choose_prj,{
+    
+    
+    mainDir <- "Data"
+    subDir.barcode <- "barcodes.tsv"
+    subDir.genes <- "genes.tsv"
+    subDir.tsne <- "tsne.tsv"
+    
+    subDir.expr <- "matrix.mtx"
+    
+    barcodes <<- read_tsv(file.path(mainDir,input$data , subDir.barcode), col_names = 'Barcode')
+    
+    rValues$genes <<- read_tsv(file.path(mainDir,input$data , subDir.genes),col_names = c('ID','Symbol'))
+    rValues$tsne = read_tsv(file.path(mainDir,input$data , subDir.tsne), skip= 1,
+                    col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+                    col_types = cols(id = col_character())
+    )
+    print('data reading complete mine')
+    expression <<-  readMM(file.path(mainDir,input$data , subDir.expr))
+    
+    rownames(expression) <-  genes$ID
+    colnames(expression) <-  barcodes$Barcode
+    print('data reading complete mine!!!!')
+   
+    # update_figure()
+    
+    updateTabsetPanel(session, inputId = 'main_panel', 'Summary')
     
   })
 

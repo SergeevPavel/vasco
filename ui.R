@@ -181,7 +181,15 @@ shinyUI(
                                                       '.mtx')), 
                                    actionButton(inputId = "upload_button", label = "Submit Data")
                                    )
+                                   ),
+                         tabPanel( 'Project',
+                                   id= 'prj',
+                                   sidebarPanel(selectInput("data", "Choose a sample:",
+                                                            list('Sample' = c("Jurkat", "33pbmc"))
+                                   ),
+                                   actionButton(inputId = "choose_prj", label = "Choose a sample")
                                    )
+                         )
             )
   )
 )
