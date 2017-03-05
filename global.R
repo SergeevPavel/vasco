@@ -10,7 +10,7 @@ source('regexMerge.R')
 library(data.table)
 
 #for file upload
-options(shiny.maxRequestSize=10000*1024^2)
+options(shiny.maxRequestSize=10000*1024^2) 
 barcodes = read_tsv('Data/redstone_1_barcodes.tsv', col_names = 'Barcode')
 genes = read_tsv('Data/redstone_1_genes.tsv',col_names = c('ID','Symbol'))
 tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
@@ -85,17 +85,18 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
   writeLines(gene_of_interest, "tmp.txt")
   cat(gene_name, file = "tmp.txt", sep="\n")
   print(gene_of_interest)
-
+  
   gene_expr <-
     data.frame(
       barcode = barcodes$Barcode,
       expr = expression[gene_of_interest,]) %>%
     tbl_df()
-
+  
   gene_expr$barcode <- gsub("(\\w+)-1", "\\1", gene_expr$barcode)
-
+  tsne$barcode <- gsub("(\\w+)-1", "\\1", tsne$barcode)
+  
   write.table(gene_expr, "mydata.txt", sep="\t")
-
+  
   cat("ping1", "tmp.txt", sep="\n")
 
   max_expr <- max(gene_expr$expr)
@@ -105,17 +106,19 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
 
   ## Join with tSNE
   tsne_subset <- tsne[as.character(tsne$barcode) %in% as.character(gene_expr$barcode), ]
+  
+  write.table(tsne$barcode, "mydata2.txt", sep="\t")
   tsne1 <-
     left_join(tsne_subset, gene_expr, by="barcode")
-
-
+  
+  
   # tsne11 <<- tsne1
-
+  
   current_time <- gsub(":", "_", substr(as.character(Sys.time()), 12, 19))
   write.table(tsne1, paste0(current_time, ".tsv"), sep="\t", col.names=NA, quote=F)
-
+  
   print("check 1")
-
+  
   ## Plot
   tsne1 %>%
     ggplot(aes(x=tSNE_1, y=tSNE_2, color=expr
@@ -125,8 +128,8 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
       colours = c(color_low, color_mid, color_high)
       ,
       values = c(0, minval, midval, maxval, max(max_expr,1))
-    # ,
-    #   rescaler = function(x, ...) x, oob = identity
+      ,
+        rescaler = function(x, ...) x, oob = identity
     ) +
     xlab(tsne_xlab) +
     ylab(tsne_ylab) +
@@ -155,6 +158,10 @@ plot_geneExprGeneCluster <- function(gene_of_interest, gene_name,tsne){
       as.data.frame() %>%
       tibble::rownames_to_column("barcode")
   }
+  
+  gene_expr$barcode <- gsub("(\\w+)-1", "\\1", gene_expr$barcode)
+  tsne$barcode <- gsub("(\\w+)-1", "\\1", tsne$barcode)
+  
   tsne1 <-
     left_join(tsne, gene_expr, by="barcode") %>%
     gather(gene, expr, starts_with("ENSG")) %>%
