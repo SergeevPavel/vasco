@@ -7,6 +7,7 @@ library(plotly)
 library(magrittr)
 library(qlcMatrix)
 source('regexMerge.R')
+library(data.table)
 
 #for file upload
 options(shiny.maxRequestSize=10000*1024^2) 
@@ -16,6 +17,8 @@ tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
                 col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
                 col_types = cols(id = col_character())
                 )
+markers = fread('Data/33pbmc/markers.tsv')
+list_marker = unique(markers$cluster)
 # tsne11 = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
 #                   col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
 #                   col_types = cols(id = col_character())
@@ -90,6 +93,9 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
       expr = expression[gene_of_interest,]) %>%
     tbl_df()
   
+  gene_expr$barcode <- gsub("(\\w+)-1", "\\1", gene_expr$barcode)
+  tsne$barcode <- gsub("(\\w+)-1", "\\1", tsne$barcode)
+  
   write.table(gene_expr, "mydata.txt", sep="\t")
   
   cat("ping1", "tmp.txt", sep="\n")
@@ -100,23 +106,31 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
   midval <- (((maxval-minval)*value_rangemid)+minval)
 
   ## Join with tSNE
+  tsne_subset <- tsne[as.character(tsne$barcode) %in% as.character(gene_expr$barcode), ]
+  
+  write.table(tsne$barcode, "mydata2.txt", sep="\t")
   tsne1 <-
-    left_join(tsne, gene_expr, by="barcode")
+    left_join(tsne_subset, gene_expr, by="barcode")
   
   
   # tsne11 <<- tsne1
-  # writeLines(tsne1, "tmp2.txt")
+  
+  current_time <- gsub(":", "_", substr(as.character(Sys.time()), 12, 19))
+  write.table(tsne1, paste0(current_time, ".tsv"), sep="\t", col.names=NA, quote=F)
   
   print("check 1")
+  
   ## Plot
   tsne1 %>%
     ggplot(aes(x=tSNE_1, y=tSNE_2, color=expr
                )) +
     geom_point(alpha=1, size=.5) +
     scale_color_gradientn(
-      colours = c(color_low, color_mid, color_high),
-      values = c(0, minval, midval, maxval, max_expr),
-      rescaler = function(x, ...) x, oob = identity
+      colours = c(color_low, color_mid, color_high)
+      ,
+      values = c(0, minval, midval, maxval, max(max_expr,1))
+      ,
+        rescaler = function(x, ...) x, oob = identity
     ) +
     xlab(tsne_xlab) +
     ylab(tsne_ylab) +
@@ -145,6 +159,10 @@ plot_geneExprGeneCluster <- function(gene_of_interest, gene_name,tsne){
       as.data.frame() %>%
       tibble::rownames_to_column("barcode")
   }
+  
+  gene_expr$barcode <- gsub("(\\w+)-1", "\\1", gene_expr$barcode)
+  tsne$barcode <- gsub("(\\w+)-1", "\\1", tsne$barcode)
+  
   tsne1 <-
     left_join(tsne, gene_expr, by="barcode") %>%
     gather(gene, expr, starts_with("ENSG")) %>%
