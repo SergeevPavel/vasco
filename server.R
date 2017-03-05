@@ -40,22 +40,22 @@ shinyServer(function(input, output, session) {
                            tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
                                            col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
                                            col_types = cols(id = col_character())
-                           # ),
-                           # genes = read_tsv('Data/redstone_1_genes.tsv', skip= 1,
-                           #                 col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
-                           #                 col_types = cols(id = col_character())
+                                           # ),
+                                           # genes = read_tsv('Data/redstone_1_genes.tsv', skip= 1,
+                                           #                 col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+                                           #                 col_types = cols(id = col_character())
                            )
-                           )
+  )
   
-
+  
   #check if came from previous compare tab
   query_vals <- reactive({session$clientData$url_search
-                                })
-
+  })
+  
   observe({if ('?compare' == query_vals()){print(query_vals())
     updateTabsetPanel(session, inputId = 'main_panel', 'Explore clusters') }})
-
-
+  
+  
   output$tSNE_selectForRename = renderPlotly({
     plot_ly(rValues$tsne, x = ~tSNE_1, y = ~tSNE_2, text = ~barcode, color = ~id, key = ~barcode, source = 'selectForRename') %>%
       layout(
@@ -64,7 +64,7 @@ shinyServer(function(input, output, session) {
         yaxis = list(title = tsne_ylab)
       )
   })
-
+  
   # main SNE plot ---------
   output$tSNEPlot <- renderPlotly({
     # size of the bins depend on the input 'bins'
@@ -75,7 +75,7 @@ shinyServer(function(input, output, session) {
         yaxis = list(title = tsne_ylab)
       )
   })
-
+  
   # COMPARE TAB-------
   #render initial seleciton plot
   output$tSNE_select_one <- renderPlotly({
@@ -87,53 +87,53 @@ shinyServer(function(input, output, session) {
         yaxis = list(title = tsne_ylab)
       )
   })
-
+  
   # selection code and differential expression ------
   selected_data <- reactive({event_data("plotly_selected", source = "selection_plot_one")})
-
+  
   selected_data_toRename <- reactive({event_data("plotly_selected", source = "selectForRename")})
-
+  
   selected_data_two <- reactive({event_data("plotly_selected", source = "selection_plot_two")})
-
+  
   #shows the button when first population selected in plot
   observe({
     if((((is.null(selected_data()) | is.null(dim(selected_data()))) & !input$selectDefinedGroup) |
-       input$selectDefinedGroup & length(input$whichGroups)==0) | !is.null(rValues$selected_vector1)){
+        input$selectDefinedGroup & length(input$whichGroups)==0) | !is.null(rValues$selected_vector1)){
       disable("pop_one_selected")
     } else{
       enable('pop_one_selected')
     }
   })
-
+  
   observe({
-  #hide button one and two on load
-  disable(id="pop_one_selected")
-  hide(id="pop_two_selected")
-  #hide second plot on load
-  hide(id="div_select_two")
-  hide(id="comparisonOutput")
-  hide(id = 'downloadDifGenes')
-  hide(id="reload")
+    #hide button one and two on load
+    disable(id="pop_one_selected")
+    hide(id="pop_two_selected")
+    #hide second plot on load
+    hide(id="div_select_two")
+    hide(id="comparisonOutput")
+    hide(id = 'downloadDifGenes')
+    hide(id="reload")
   })
-
-
+  
+  
   #if select new groups button is pressed reload page on this tab
   observeEvent(input$reload, {
     print("hello worlddd")
     js$refresh()
   })
-
+  
   #render second selection plot when first population locked-in
   output$tSNE_select_two <- renderPlotly({
     input$pop_one_selected
     isolate( plot_ly(rValues$tsne, x = ~tSNE_1, y = ~tSNE_2, text = ~barcode, color = ~id, key = ~barcode, source = "selection_plot_two") %>%
-      layout(
-        dragmode = "select",
-        xaxis = list(title = tsne_xlab),
-        yaxis = list(title = tsne_ylab)
-      ))
+               layout(
+                 dragmode = "select",
+                 xaxis = list(title = tsne_xlab),
+                 yaxis = list(title = tsne_ylab)
+               ))
   })
-
+  
   # when button one is clicked, update ui and assign cell population to var
   # and show button two
   observeEvent(input$pop_one_selected, {
@@ -143,7 +143,7 @@ shinyServer(function(input, output, session) {
     show("pop_two_selected")
     hide(id="div_select_one")
   })
-
+  
   # when button two is clicked, update ui and assign cell population to var
   observeEvent(input$pop_two_selected, {
     html(id = "select_text", "")
@@ -152,16 +152,16 @@ shinyServer(function(input, output, session) {
     show('histPlot')
     show("reload")
   })
-
+  
   #output$newPlot <- renderPlotly({
-   # input$pop_selected
-    #new_tsne <- isolate(selected_data())
-    #plot_ly(new_tsne, x = ~x, y = ~y, text = ~key) %>%
-     # layout(dragmode = "select")})
-
-
+  # input$pop_selected
+  #new_tsne <- isolate(selected_data())
+  #plot_ly(new_tsne, x = ~x, y = ~y, text = ~key) %>%
+  # layout(dragmode = "select")})
+  
+  
   # code for setting the clusters -----
-
+  
   observe({
     if(input$selectDefinedGroupForRename){
       show(id = 'whichGroupsForRename')
@@ -170,39 +170,39 @@ shinyServer(function(input, output, session) {
       hide(id = 'whichGroupsForRename')
     }
   })
-
+  
   observe({
     print(input$renamePoulationButton)
   })
-
+  
   observe({
     if(input$renamePoulationButton>=1){
       isolate({
         if(!input$selectDefinedGroupForRename){
           tsneSubset = rValues$tsne[round(rValues$tsne$tSNE_1, 5) %in% round(selected_data_toRename()$x, 5) & round(rValues$tsne$tSNE_2, 5) %in% round(selected_data_toRename()$y, 5),]
-          } else{
+        } else{
           tsneSubset = rValues$tsne[rValues$tsne$id %in% input$whichGroupsForRename,]
         }
         out = tsneSubset$barcode
-
         
-
+        
+        
         rValues$tsne[rValues$tsne$barcode %in% out,'id'] = input$newClusterName
         # update everything that uses old clusters
         updateCheckboxGroupInput(session,
                                  inputId = 'whichGroups',
-                                  label = 'Predefined clusters:',
-                                  choices = unique(rValues$tsne$id) %>% sort)
+                                 label = 'Predefined clusters:',
+                                 choices = unique(rValues$tsne$id) %>% sort)
         updateCheckboxGroupInput(session,
                                  inputId = 'whichGroupsForRename',
                                  label = 'Predefined clusters:',
                                  choices = unique(rValues$tsne$id) %>% sort)
-    })
+      })
     }
-    })
+  })
   
-
-
+  
+  
   # do I want to select defined groups?------
   observe({
     if(input$selectDefinedGroup){
@@ -212,7 +212,7 @@ shinyServer(function(input, output, session) {
       hide(id = 'whichGroups')
     }
   })
-
+  
   observe({
     if(input$pop_one_selected==1){
       isolate({
@@ -229,7 +229,7 @@ shinyServer(function(input, output, session) {
       })
     }
   })
-
+  
   observe({
     if(input$pop_two_selected == 1){
       hide('div_select_two')
@@ -251,7 +251,7 @@ shinyServer(function(input, output, session) {
       })
     }
   })
-
+  
   second_clicked_eds <-reactive({input$pop_two_selected
     barcodes_1 <- barcodes$Barcode[isolate({rValues$selected_vector1})]
     barcodes_2<- barcodes$Barcode[isolate({rValues$selected_vector2})]
@@ -260,14 +260,14 @@ shinyServer(function(input, output, session) {
     g2 = rValues$tsne[rValues$tsne$barcode %in% barcodes_2  & !(rValues$tsne$barcode %in% barcodes_1),]
     intersection = rValues$tsne[ rValues$tsne$barcode %in% barcodes_2 & rValues$tsne$barcode %in% barcodes_1 ,]
     list(g1, g2, intersection)})
-
-
-
-
+  
+  
+  
+  
   second_clicked <-reactive({input$pop_two_selected})
-
-
-
+  
+  
+  
   # Once group 1 and group 2 of cells are selected,
   # create 10 boxplots showing the gene expression distributions
   # of group 1 and group 2 for the top 10 up-regulated and
@@ -276,25 +276,25 @@ shinyServer(function(input, output, session) {
     if ( !is.null(differentiallyExpressed()) ) {
       # TODO: Allow user to specify this
       gene_cnt <- 10
-
+      
       nbr_group1 <- sum(rValues$selected_vector1)
       nbr_group2 <- sum(rValues$selected_vector2)
       nbr_barcodes <- nbr_group1 + nbr_group2
-
+      
       diff_genes <- differentiallyExpressed()$`Gene Symbol`
       if(is.null(input$difGeneTable_rows_selected)){
         gene_indices <- c(1:gene_cnt, (length(diff_genes)-gene_cnt+1):length(diff_genes))
       } else{
         gene_indices = input$difGeneTable_rows_selected
       }
-
+      
       dg_mat <- c()
       for ( n in gene_indices ) {
         # Get gene expression data and shift/log2-transform
         gene_idx <- which(genes$Symbol == diff_genes[n])
         dat1 <- log2(expression[gene_idx, rValues$selected_vector1] + 0.1)
         dat2 <- log2(expression[gene_idx, rValues$selected_vector2] + 0.1)
-
+        
         # Store data into matrix of size 'nbr_barcodes' rows by 4 cols
         dg_mat <- rbind(dg_mat,
                         data.frame(gene = rep(diff_genes[n], nbr_barcodes),
@@ -305,7 +305,7 @@ shinyServer(function(input, output, session) {
                         )
         )
       }
-
+      
       # Ensure that data type for each column is appropriate for ggplot display
       # TODO: Simplify this...
       dg_mat <-
@@ -315,7 +315,7 @@ shinyServer(function(input, output, session) {
           group = as.factor(group),
           panel = as.factor(panel)) %>%
         arrange(panel)
-
+      
       # TODO: Find a better way to preserve gene order
       dg_mat$gene <- factor(dg_mat$gene, levels = dg_mat$gene)
       dimensions= ceiling(sqrt(length(dg_mat$gene %>% unique)))
@@ -333,7 +333,7 @@ shinyServer(function(input, output, session) {
       plotly_empty()
     }
   })
-
+  
   output$tSNE_summary <- renderPlotly({
     groups <- second_clicked_eds()
     g1 = groups[[1]]
@@ -351,13 +351,13 @@ shinyServer(function(input, output, session) {
       colours = c("purple", "dark red", "dark blue")
     }
     plot_ly(all_groups, x = ~tSNE_1, y = ~tSNE_2, text = ~barcode, color = ~group, colors = colours,
-             key = ~barcode, source = "selection_plot_two") %>%
-              layout(dragmode = "select",
-                     xaxis = list(range = c(-40,40), title=tsne_xlab),
-                     yaxis = list(range = c(-40,40), title=tsne_ylab)
-                     )
-    })
-
+            key = ~barcode, source = "selection_plot_two") %>%
+      layout(dragmode = "select",
+             xaxis = list(range = c(-40,40), title=tsne_xlab),
+             yaxis = list(range = c(-40,40), title=tsne_ylab)
+      )
+  })
+  
   # histogram of cells -----------
   output$cell_type_summary <- renderPlotly({
     tsne_id <- table(rValues$tsne$id)
@@ -380,27 +380,27 @@ shinyServer(function(input, output, session) {
       add_trace(y=~g2_cell_counts, marker = list(color = 'rgb(0,0,140)'), name = "group 2") %>%
       layout( yaxis = list(title = 'Count'), barmode = 'group')
   })
-
-
-
+  
+  
+  
   output$downloadDifGenes = downloadHandler(
     filename = 'difGenes.tsv',
     content = function(file) {
       write_tsv(differentiallyExpressed(), file)
     })
-
-
+  
+  
   differentiallyExpressed = reactive({
     print('should I calculate dif genes?')
-      print('yeah I guess')
-      if(!is.null(rValues$selected_vector2) & !is.null(rValues$selected_vector1)){
-        show('downloadDifGenes')
-        difGenes(group1 = isolate(rValues$selected_vector1),
-                 group2 = rValues$selected_vector2)
-      }
+    print('yeah I guess')
+    if(!is.null(rValues$selected_vector2) & !is.null(rValues$selected_vector1)){
+      show('downloadDifGenes')
+      difGenes(group1 = isolate(rValues$selected_vector1),
+               group2 = rValues$selected_vector2)
+    }
   })
-
-
+  
+  
   output$difGeneTable = renderDataTable({
     if(!is.null(differentiallyExpressed())){
       table = differentiallyExpressed()
@@ -418,9 +418,9 @@ shinyServer(function(input, output, session) {
       updateSelectInput(session, 'input_genes', selected = selectedGene)
     }
   })
-
-
-
+  
+  
+  
   # histogram of cells -----------
   # output$countPerCluster <- renderPlotly({
   #   ax <- list(
@@ -436,7 +436,7 @@ shinyServer(function(input, output, session) {
   #     layout(xaxis = ax,
   #            yaxis = list(title = "Number of cells"))
   # })
-
+  
   # plotting selected genes ----------
   # disable button when empty
   observe({
@@ -446,15 +446,15 @@ shinyServer(function(input, output, session) {
       enable('exprGeneButton')
     }
   })
-
+  
   geneExpr_genes <- reactive({
     # Take a dependency on input$goButton
     input$exprGeneButton
     input$difGeneTable_rows_selected
     print('drawing gene plots')
-
+    
     isolate(input$input_genes)
-    })
+  })
   output$geneExprPlot <- renderUI({
     plot_output_list <- lapply(1:length(geneExpr_genes()), function(i) {
       print(i)
@@ -466,7 +466,7 @@ shinyServer(function(input, output, session) {
     # to display properly.
     do.call(tagList, plot_output_list)
   })
-
+  
   observe({
     if(!input$exprVis == 'tSNE'){
       hide('tsneHeatmapOptions')
@@ -474,7 +474,7 @@ shinyServer(function(input, output, session) {
       show('tsneHeatmapOptions')
     }
   })
-
+  
   # Call renderPlot for each one. Plots are only actually generated when they
   # are visible on the web page.
   for (i in 1:geneExpr_maxItems) {
@@ -485,7 +485,7 @@ shinyServer(function(input, output, session) {
       
       my_i <- i
       plotname <- paste("plot", my_i, sep="")
-
+      
       output[[plotname]] <- renderPlotly({
         gene_of_interest <- parse_gene_input(geneExpr_genes()[my_i])
         gene_name <- parse_gene_input(geneExpr_genes()[my_i], get="name")
@@ -500,7 +500,7 @@ shinyServer(function(input, output, session) {
       })
     })
   }
-
+  
   output$geneExprGeneCluster <- renderPlotly({
     print('drawing gene plots4')
     
@@ -544,7 +544,7 @@ shinyServer(function(input, output, session) {
     }
     
     
-      
+    
   })
   
   
@@ -562,12 +562,12 @@ shinyServer(function(input, output, session) {
     
     genes <<- read_tsv(file.path(mainDir,input$data , subDir.genes),col_names = c('ID','Symbol'))
     rValues$tsne = read_tsv(file.path(mainDir,input$data , subDir.tsne), skip= 1,
-                    col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
-                    col_types = cols(id = col_character())
+                            col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+                            col_types = cols(id = col_character())
     )
     tsne <<- read_tsv(file.path(mainDir,input$data , subDir.tsne), skip= 1,
-                    col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
-                    col_types = cols(id = col_character())
+                      col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+                      col_types = cols(id = col_character())
     )
     print('data reading complete mine')
     expression <<-  readMM(file.path(mainDir,input$data , subDir.expr))
@@ -575,13 +575,13 @@ shinyServer(function(input, output, session) {
     rownames(expression) <<-  genes$ID
     colnames(expression) <<-  barcodes$Barcode
     print('data reading complete mine!!!!')
-   
+    
     # update_figure()
     
     updateTabsetPanel(session, inputId = 'main_panel', 'Summary')
     
   })
-
-
+  
+  
 }
 )

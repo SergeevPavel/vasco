@@ -15,7 +15,7 @@ genes = read_tsv('Data/redstone_1_genes.tsv',col_names = c('ID','Symbol'))
 tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
                 col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
                 col_types = cols(id = col_character())
-                )
+)
 # tsne11 = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
 #                   col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
 #                   col_types = cols(id = col_character())
@@ -58,7 +58,7 @@ normalizeExpresion = function(v) {
   # scale each expression value by the cell-specific scale factor
   scale_factor_for_each_cell <- (expression_sum_for_each_cell/overall_median_expression)
   normalized_expression <- expression/scale_factor_for_each_cell
-
+  
   normalized_expression
 }
 
@@ -91,18 +91,21 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
     tbl_df()
   
   gene_expr$barcode <- gsub("(\\w+)-1", "\\1", gene_expr$barcode)
+  tsne$barcode <- gsub("(\\w+)-1", "\\1", tsne$barcode)
   
   write.table(gene_expr, "mydata.txt", sep="\t")
   
   cat("ping1", "tmp.txt", sep="\n")
-
+  
   max_expr <- max(gene_expr$expr)
   minval <- max_expr*value_min
   maxval <- max_expr*value_max
   midval <- (((maxval-minval)*value_rangemid)+minval)
-
+  
   ## Join with tSNE
   tsne_subset <- tsne[as.character(tsne$barcode) %in% as.character(gene_expr$barcode), ]
+  
+  write.table(tsne$barcode, "mydata2.txt", sep="\t")
   tsne1 <-
     left_join(tsne_subset, gene_expr, by="barcode")
   
@@ -117,14 +120,14 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
   ## Plot
   tsne1 %>%
     ggplot(aes(x=tSNE_1, y=tSNE_2, color=expr
-               )) +
+    )) +
     geom_point(alpha=1, size=.5) +
     scale_color_gradientn(
       colours = c(color_low, color_mid, color_high)
       ,
       values = c(0, minval, midval, maxval, max(max_expr,1))
-    # ,
-    #   rescaler = function(x, ...) x, oob = identity
+      ,
+        rescaler = function(x, ...) x, oob = identity
     ) +
     xlab(tsne_xlab) +
     ylab(tsne_ylab) +
@@ -137,7 +140,7 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
 #' Draw geneExpr boxplot by cluster
 plot_geneExprGeneCluster <- function(gene_of_interest, gene_name,tsne){
   the_genes <- setNames(gene_name, gene_of_interest)
-
+  
   if (length(gene_of_interest) == 1) {
     gene_expr <-
       data.frame(
@@ -153,6 +156,10 @@ plot_geneExprGeneCluster <- function(gene_of_interest, gene_name,tsne){
       as.data.frame() %>%
       tibble::rownames_to_column("barcode")
   }
+  
+  gene_expr$barcode <- gsub("(\\w+)-1", "\\1", gene_expr$barcode)
+  tsne$barcode <- gsub("(\\w+)-1", "\\1", tsne$barcode)
+  
   tsne1 <-
     left_join(tsne, gene_expr, by="barcode") %>%
     gather(gene, expr, starts_with("ENSG")) %>%
