@@ -18,6 +18,7 @@ tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
                 col_types = cols(id = col_character())
                 )
 markers = fread('Data/33pbmc/markers.tsv')
+list_marker = unique(markers$cluster)
 # tsne11 = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
 #                   col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
 #                   col_types = cols(id = col_character())

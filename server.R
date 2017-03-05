@@ -582,6 +582,8 @@ shinyServer(function(input, output, session) {
     )
     print('data reading complete mine')
     expression <<-  readMM(file.path(mainDir,input$data , subDir.expr))
+    list_marker <<- unique(markers$cluster)
+    
     
     rownames(expression) <<-  genes$ID
     print("check")

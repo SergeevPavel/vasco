@@ -197,7 +197,7 @@ shinyUI(
                          tabPanel( 'Project',
                                    id= 'prj',
                                    sidebarPanel(selectInput("data", "Choose a sample:",
-                                                            list('Sample' = c("Jurkat", "33pbmc"))
+                                                            list('Sample' = c("jurkat", "33pbmc"))
                                    ),
                                    actionButton(inputId = "choose_prj", label = "Choose a sample")
                                    )
