@@ -40,10 +40,10 @@ shinyServer(function(input, output, session) {
                            tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
                                            col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
                                            col_types = cols(id = col_character())
-                           ),
-                           genes = read_tsv('Data/redstone_1_genes.tsv', skip= 1,
-                                           col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
-                                           col_types = cols(id = col_character())
+                           # ),
+                           # genes = read_tsv('Data/redstone_1_genes.tsv', skip= 1,
+                           #                 col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+                           #                 col_types = cols(id = col_character())
                            )
                            )
   
@@ -454,10 +454,10 @@ shinyServer(function(input, output, session) {
     print('drawing gene plots')
 
     isolate(input$input_genes)
-    print('drawing gene plots1')
     })
   output$geneExprPlot <- renderUI({
     plot_output_list <- lapply(1:length(geneExpr_genes()), function(i) {
+      print(i)
       plotname <- paste("plot", i, sep="")
       plotlyOutput(plotname)
     })
@@ -489,6 +489,7 @@ shinyServer(function(input, output, session) {
       output[[plotname]] <- renderPlotly({
         gene_of_interest <- parse_gene_input(geneExpr_genes()[my_i])
         gene_name <- parse_gene_input(geneExpr_genes()[my_i], get="name")
+        writeLines(gene_of_interest, "tmp1.txt")
         plot_geneExpr(gene_of_interest, gene_name,
                       value_rangemid=input$Midpoint,
                       value_min = input$MinMax[1],
@@ -559,16 +560,20 @@ shinyServer(function(input, output, session) {
     
     barcodes <<- read_tsv(file.path(mainDir,input$data , subDir.barcode), col_names = 'Barcode')
     
-    rValues$genes <<- read_tsv(file.path(mainDir,input$data , subDir.genes),col_names = c('ID','Symbol'))
+    genes <<- read_tsv(file.path(mainDir,input$data , subDir.genes),col_names = c('ID','Symbol'))
     rValues$tsne = read_tsv(file.path(mainDir,input$data , subDir.tsne), skip= 1,
+                    col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+                    col_types = cols(id = col_character())
+    )
+    tsne <<- read_tsv(file.path(mainDir,input$data , subDir.tsne), skip= 1,
                     col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
                     col_types = cols(id = col_character())
     )
     print('data reading complete mine')
     expression <<-  readMM(file.path(mainDir,input$data , subDir.expr))
     
-    rownames(expression) <-  genes$ID
-    colnames(expression) <-  barcodes$Barcode
+    rownames(expression) <<-  genes$ID
+    colnames(expression) <<-  barcodes$Barcode
     print('data reading complete mine!!!!')
    
     # update_figure()

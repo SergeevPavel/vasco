@@ -9,13 +9,17 @@ library(qlcMatrix)
 source('regexMerge.R')
 
 #for file upload
-options(shiny.maxRequestSize=30*1024^2) 
+options(shiny.maxRequestSize=10000*1024^2) 
 barcodes = read_tsv('Data/redstone_1_barcodes.tsv', col_names = 'Barcode')
 genes = read_tsv('Data/redstone_1_genes.tsv',col_names = c('ID','Symbol'))
 tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
                 col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
                 col_types = cols(id = col_character())
                 )
+# tsne11 = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
+#                   col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
+#                   col_types = cols(id = col_character())
+# )
 # tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
 #                 col_name = c('barcode','tSNE_1', 'tSNE_2','id'))
 print('expression data read')
@@ -61,7 +65,7 @@ normalizeExpresion = function(v) {
 expression = normalizeExpresion(expression)
 
 genes$Symbol_ID <- paste(genes$Symbol,genes$ID, sep="_")
-list_of_genesymbols <- sort(genes$Symbol_ID)
+list_of_genesymbols <<- sort(genes$Symbol_ID)
 
 #' Normalization
 parse_gene_input <- function(x, get="id"){
@@ -76,11 +80,19 @@ parse_gene_input <- function(x, get="id"){
 plot_geneExpr <- function(gene_of_interest, gene_name,
                           value_min = 0, value_max = 1, value_rangemid = 0.5,
                           color_low = "grey99", color_mid= "grey44", color_high = "red"){
+  writeLines(gene_of_interest, "tmp.txt")
+  cat(gene_name, file = "tmp.txt", sep="\n")
+  print(gene_of_interest)
+  
   gene_expr <-
     data.frame(
       barcode = barcodes$Barcode,
       expr = expression[gene_of_interest,]) %>%
     tbl_df()
+  
+  write.table(gene_expr, "mydata.txt", sep="\t")
+  
+  cat("ping1", "tmp.txt", sep="\n")
 
   max_expr <- max(gene_expr$expr)
   minval <- max_expr*value_min
@@ -90,9 +102,16 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
   ## Join with tSNE
   tsne1 <-
     left_join(tsne, gene_expr, by="barcode")
+  
+  
+  # tsne11 <<- tsne1
+  # writeLines(tsne1, "tmp2.txt")
+  
+  print("check 1")
   ## Plot
   tsne1 %>%
-    ggplot(aes(x=tSNE_1, y=tSNE_2, color=expr)) +
+    ggplot(aes(x=tSNE_1, y=tSNE_2, color=expr
+               )) +
     geom_point(alpha=1, size=.5) +
     scale_color_gradientn(
       colours = c(color_low, color_mid, color_high),
@@ -103,6 +122,7 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
     ylab(tsne_ylab) +
     theme_classic() +
     ggtitle(gene_name)
+  cat("ping2", "tmp.txt", sep="\n")
   ggplotly()
 }
 
