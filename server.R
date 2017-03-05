@@ -424,6 +424,12 @@ shinyServer(function(input, output, session) {
       gene = differentiallyExpressed()[input$difGeneTable_rows_selected,]$`Gene Symbol`
       selectedGene = list_of_genesymbols[grepl(regexMerge(paste0('^',gene,'_')),list_of_genesymbols)]
       updateSelectInput(session, 'input_genes', selected = selectedGene)
+    } else {
+      if (!is.null(input$input_pathways) && trimws(input$input_pathways) != "") {
+        pathway = input$input_pathways
+        pathway_genes = pathways[pathways$PathwayName == pathway, 3]
+        updateSelectInput(session, 'input_genes', selected = genes[genes$ID %in% pathway_genes[[1]], 3][[1]])
+      }
     }
   })
   

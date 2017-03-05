@@ -21,6 +21,10 @@ tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
 )
 markers = fread('Data/33pbmc/markers.tsv')
 list_marker = unique(markers$cluster)
+
+pathways = read_csv('Data/pathways.csv')
+list_of_pathways = unique(pathways$PathwayName)
+
 # tsne11 = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
 #                   col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
 #                   col_types = cols(id = col_character())
@@ -38,7 +42,7 @@ print('data reading complete')
 tsne_xlab <- "TSNE 1"
 tsne_ylab <- "TSNE 2"
 
-geneExpr_maxItems = 4
+geneExpr_maxItems = 50
 geneExpr_colorMin = "#EAF7F7"
 geneExpr_colorMax = "#FF00EA"
 geneExpr_colorMid <- "#B8C1D6"

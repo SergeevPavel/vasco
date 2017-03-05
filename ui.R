@@ -89,7 +89,14 @@ shinyUI(
                          # panel for displaying individual gene expression data
                          tabPanel('Visualize genes',
                                   id = "geneEpxr",
-                                  column(4, wellPanel(selectizeInput('input_genes', h1('Select genes'),
+                                  column(4, wellPanel(
+                                                      selectizeInput('input_pathways', h1('Select pathway'),
+                                                                     choices = list_of_pathways,
+                                                                     options = list(
+                                                                       placeholder = 'Please select pathway',
+                                                                       onInitialize = I('function() { this.setValue(""); }')
+                                                                     )),
+                                                      selectizeInput('input_genes', h1('Select genes'),
                                                                      choices = list_of_genesymbols,
                                                                      options = list(maxItems = geneExpr_maxItems),
                                                                      selected = c('LGALS1_ENSG00000100097'),
