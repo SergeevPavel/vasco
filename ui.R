@@ -50,13 +50,13 @@ shinyUI(
                               }
                               "))
               ),
-            
+
             extendShinyjs(text = "shinyjs.refresh = function() { redir_Str = window.location.href.split('?')[0] + '?compare'; window.location.href = redir_Str ; }"),
             # Application title
             titlePanel('VASCO'),
             #titlePanel(h1("VASCO", id="title")),
             p("Visualization App for Single Cells explOration", id="titledescript"),
-            
+
             tabsetPanel( id = "main_panel",
                          # main panel for tSNE plot and group selection
                          tabPanel('Summary',
@@ -67,17 +67,16 @@ shinyUI(
                                     # welcome text
                                     column(8, offset = 1,
                                            tags$div(
-                                             tags$p("This application facilitates real-time data visualization and exploration of single cell RNA-seq data.
-                                                    It takes the gene-barcode matrix and the clustering result as input."),
+                                             tags$p("This is a modified version of VASCO application: https://github.com/hackseq/vasco"),
                                              tags$p("Users can:")
                                              ),
-                                           
+
                                            tags$ul(
                                              tags$li("visualize the cells using t-distributed stochastic neighbour embedding (t-SNE) plots"),
                                              tags$li("explore the expression pattern of specific genes"),
                                              tags$li("investigate the identity of cell clusters by examining genes that are specific to a cluster")
                                            )),
-                                    
+
                                     # main window plots
                                     column(8,
                                            plotlyOutput('tSNEPlot',height = '600px'),
@@ -90,7 +89,8 @@ shinyUI(
                          tabPanel('Visualize genes',
                                   id = "geneEpxr",
                                   column(4, wellPanel(
-                                                      selectizeInput('input_pathways', h1('Select pathway'),
+                                                      selectizeInput('input_pathways',
+                                                                     h1('Select human pathway'),
                                                                      choices = list_of_pathways,
                                                                      options = list(
                                                                        placeholder = 'Please select pathway',
@@ -144,7 +144,7 @@ shinyUI(
                                                                div(id = "div_select_two", plotlyOutput('tSNE_select_two',height = '600px')),
                                                                dataTableOutput('difGeneTable'),
                                                                div(id= 'comparisonOutput',
-                                                                   
+
                                                                    tabsetPanel(tabPanel('Visualize genes',
                                                                                         id = "histPlot",
                                                                                         plotlyOutput('histPlot', height = '500px')),
@@ -171,42 +171,21 @@ shinyUI(
                                                                plotlyOutput('tSNE_selectForRename',height = '600px')))
                                    )
                          ),
-                         tabPanel( 'Upload data',
-                                   id= 'upload',
-                                   sidebarPanel(fileInput('barcodes_file', 'Barcodes .tsv File',
-                                                          accept=c('text/tsv', 
-                                                                   'text/comma-separated-values,text/plain', 
-                                                                   '.tsv')), 
-                                                fileInput('genes_file', 'Genes .tsv File',
-                                                          accept=c('text/tsv', 
-                                                                   'text/comma-separated-values,text/plain', 
-                                                                   '.tsv')),
-                                                fileInput('tsne_file', 'tsne tdf File',
-                                                          accept = NULL),
-                                                fileInput('mtx_file', 'Expression matrix .mtx File',
-                                                          accept=c(
-                                                            '.mtx')), 
-                                                actionButton(inputId = "upload_button", label = "Submit Data")
-                                   )
-                         ),
-                         tabPanel('TopDiffCl',
+                         tabPanel('Dif. expressed genes',
                                   id= 'tdl',
-                                  
-                                  
-                                  
+                                  tags$p('Top differentially expressed genes per cell cluster'),
                                   selectInput("selectcluster", "Choose a cluster:",
                                               list('cluster' = unique(markers$cluster))),
                                   DT::dataTableOutput("markerstable")
-                                  
-                                  
                          ),
-                         
-                         tabPanel( 'Project',
+
+                         tabPanel( 'Select dataset',
                                    id= 'prj',
-                                   sidebarPanel(selectInput("data", "Choose a sample:",
-                                                            list('Sample' = prj_list)
+                                   tags$p('Please note that loading dataset might take considerable time.'),
+                                   sidebarPanel(selectInput("data", "Choose dataset:",
+                                                            list('Dataset' = prj_list)
                                    ),
-                                   actionButton(inputId = "choose_prj", label = "Choose a sample")
+                                   actionButton(inputId = "choose_prj", label = "Choose dataset")
                                    )
                          )
                          )
