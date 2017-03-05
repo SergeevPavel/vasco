@@ -29,9 +29,9 @@ print('starting server')
 #         yaxis = list(title = tsne_ylab)
 #       )
 #   })
-#   
+#
 #   update_figure <- NULL
-#   
+#
 # }
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
@@ -46,7 +46,15 @@ shinyServer(function(input, output, session) {
                            #                 col_types = cols(id = col_character())
                            )
                            )
-  
+
+  output$markerstable <- DT::renderDataTable(DT::datatable({
+    data <- markers
+      data <- data[data$cluster == input$selectcluster,]
+
+
+    data
+  }))
+
 
   #check if came from previous compare tab
   query_vals <- reactive({session$clientData$url_search
@@ -185,7 +193,7 @@ shinyServer(function(input, output, session) {
         }
         out = tsneSubset$barcode
 
-        
+
 
         rValues$tsne[rValues$tsne$barcode %in% out,'id'] = input$newClusterName
         # update everything that uses old clusters
@@ -200,7 +208,7 @@ shinyServer(function(input, output, session) {
     })
     }
     })
-  
+
 
 
   # do I want to select defined groups?------
@@ -482,7 +490,7 @@ shinyServer(function(input, output, session) {
     # of i in the renderPlot() will be the same across all instances, because
     # of when the expression is evaluated.
     local({
-      
+
       my_i <- i
       plotname <- paste("plot", my_i, sep="")
 
@@ -503,13 +511,13 @@ shinyServer(function(input, output, session) {
 
   output$geneExprGeneCluster <- renderPlotly({
     print('drawing gene plots4')
-    
+
     gene_of_interest <- parse_gene_input(geneExpr_genes())
     gene_name <- parse_gene_input(geneExpr_genes(), get="name")
     plot_geneExprGeneCluster(gene_of_interest, gene_name,tsne = rValues$tsne)
   })
-  
-  
+
+
   #upload file page
   observeEvent(input$upload_button,{
     print("hello")
@@ -523,7 +531,7 @@ shinyServer(function(input, output, session) {
       print(is.null(genes_file))
       print(is.null(tsne_file))
       print(is.null(mtx_file))
-      
+
       return(NULL)
     }
     else{
@@ -538,28 +546,28 @@ shinyServer(function(input, output, session) {
       colnames(expression) = barcodes$Barcode
       print('data reading complete')
       updateTabsetPanel(session, inputId = 'main_panel', 'Summary')
-      
-      
-      
+
+
+
     }
-    
-    
-      
+
+
+
   })
-  
-  
+
+
   observeEvent(input$choose_prj,{
-    
-    
+
+
     mainDir <- "Data"
     subDir.barcode <- "barcodes.tsv"
     subDir.genes <- "genes.tsv"
     subDir.tsne <- "tsne.tsv"
-    
+
     subDir.expr <- "matrix.mtx"
-    
+
     barcodes <<- read_tsv(file.path(mainDir,input$data , subDir.barcode), col_names = 'Barcode')
-    
+
     genes <<- read_tsv(file.path(mainDir,input$data , subDir.genes),col_names = c('ID','Symbol'))
     rValues$tsne = read_tsv(file.path(mainDir,input$data , subDir.tsne), skip= 1,
                     col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
@@ -571,15 +579,15 @@ shinyServer(function(input, output, session) {
     )
     print('data reading complete mine')
     expression <<-  readMM(file.path(mainDir,input$data , subDir.expr))
-    
+
     rownames(expression) <<-  genes$ID
     colnames(expression) <<-  barcodes$Barcode
     print('data reading complete mine!!!!')
-   
+
     # update_figure()
-    
+
     updateTabsetPanel(session, inputId = 'main_panel', 'Summary')
-    
+
   })
 
 

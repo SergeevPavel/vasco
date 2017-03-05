@@ -167,21 +167,33 @@ shinyUI(
                          tabPanel( 'Upload data',
                                    id= 'upload',
                                    sidebarPanel(fileInput('barcodes_file', 'Barcodes .tsv File',
-                                             accept=c('text/tsv', 
-                                                      'text/comma-separated-values,text/plain', 
-                                                      '.tsv')), 
+                                             accept=c('text/tsv',
+                                                      'text/comma-separated-values,text/plain',
+                                                      '.tsv')),
                                              fileInput('genes_file', 'Genes .tsv File',
-                                                       accept=c('text/tsv', 
-                                                                'text/comma-separated-values,text/plain', 
+                                                       accept=c('text/tsv',
+                                                                'text/comma-separated-values,text/plain',
                                                                 '.tsv')),
                                              fileInput('tsne_file', 'tsne tdf File',
                                                          accept = NULL),
                                    fileInput('mtx_file', 'Expression matrix .mtx File',
                                              accept=c(
-                                                      '.mtx')), 
+                                                      '.mtx')),
                                    actionButton(inputId = "upload_button", label = "Submit Data")
                                    )
                                    ),
+                         tabPanel('TopDiffCl',
+                                   id= 'tdl',
+
+
+
+                                   selectInput("selectcluster", "Choose a cluster:",
+                                                            list('Samples' = unique(markers$cluster))),
+                                   DT::dataTableOutput("markerstable")
+
+
+                                   ),
+
                          tabPanel( 'Project',
                                    id= 'prj',
                                    sidebarPanel(selectInput("data", "Choose a sample:",

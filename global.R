@@ -7,15 +7,17 @@ library(plotly)
 library(magrittr)
 library(qlcMatrix)
 source('regexMerge.R')
+library(data.table)
 
 #for file upload
-options(shiny.maxRequestSize=10000*1024^2) 
+options(shiny.maxRequestSize=10000*1024^2)
 barcodes = read_tsv('Data/redstone_1_barcodes.tsv', col_names = 'Barcode')
 genes = read_tsv('Data/redstone_1_genes.tsv',col_names = c('ID','Symbol'))
 tsne = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
                 col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
                 col_types = cols(id = col_character())
                 )
+markers = fread('Data/33pbmc/markers.tsv')
 # tsne11 = read_tsv('Data/redstone_pbmc3k_tdf', skip= 1,
 #                   col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
 #                   col_types = cols(id = col_character())
@@ -83,15 +85,15 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
   writeLines(gene_of_interest, "tmp.txt")
   cat(gene_name, file = "tmp.txt", sep="\n")
   print(gene_of_interest)
-  
+
   gene_expr <-
     data.frame(
       barcode = barcodes$Barcode,
       expr = expression[gene_of_interest,]) %>%
     tbl_df()
-  
+
   write.table(gene_expr, "mydata.txt", sep="\t")
-  
+
   cat("ping1", "tmp.txt", sep="\n")
 
   max_expr <- max(gene_expr$expr)
@@ -102,11 +104,11 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
   ## Join with tSNE
   tsne1 <-
     left_join(tsne, gene_expr, by="barcode")
-  
-  
+
+
   # tsne11 <<- tsne1
   # writeLines(tsne1, "tmp2.txt")
-  
+
   print("check 1")
   ## Plot
   tsne1 %>%
