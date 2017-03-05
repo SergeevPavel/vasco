@@ -563,11 +563,14 @@ shinyServer(function(input, output, session) {
     subDir.barcode <- "barcodes.tsv"
     subDir.genes <- "genes.tsv"
     subDir.tsne <- "tsne.tsv"
+    subDir.marker <- "markers.tsv"
 
     subDir.expr <- "matrix.mtx"
 
     barcodes <<- read_tsv(file.path(mainDir,input$data , subDir.barcode), col_names = 'Barcode')
 
+    markers <<- fread(file.path(mainDir,input$data , subDir.marker))
+    print(dim(markers))
     genes <<- read_tsv(file.path(mainDir,input$data , subDir.genes),col_names = c('ID','Symbol'))
     rValues$tsne = read_tsv(file.path(mainDir,input$data , subDir.tsne), skip= 1,
                     col_name = c('barcode','tSNE_1', 'tSNE_2','cluster_id', 'id'),
@@ -581,6 +584,9 @@ shinyServer(function(input, output, session) {
     expression <<-  readMM(file.path(mainDir,input$data , subDir.expr))
 
     rownames(expression) <<-  genes$ID
+    print("check")
+    print(length(barcodes$Barcode))
+    print(dim(expression))
     colnames(expression) <<-  barcodes$Barcode
     print('data reading complete mine!!!!')
 

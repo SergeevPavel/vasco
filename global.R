@@ -92,6 +92,8 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
       expr = expression[gene_of_interest,]) %>%
     tbl_df()
 
+  gene_expr$barcode <- gsub("(\\w+)-1", "\\1", gene_expr$barcode)
+
   write.table(gene_expr, "mydata.txt", sep="\t")
 
   cat("ping1", "tmp.txt", sep="\n")
@@ -102,23 +104,29 @@ plot_geneExpr <- function(gene_of_interest, gene_name,
   midval <- (((maxval-minval)*value_rangemid)+minval)
 
   ## Join with tSNE
+  tsne_subset <- tsne[as.character(tsne$barcode) %in% as.character(gene_expr$barcode), ]
   tsne1 <-
-    left_join(tsne, gene_expr, by="barcode")
+    left_join(tsne_subset, gene_expr, by="barcode")
 
 
   # tsne11 <<- tsne1
-  # writeLines(tsne1, "tmp2.txt")
+
+  current_time <- gsub(":", "_", substr(as.character(Sys.time()), 12, 19))
+  write.table(tsne1, paste0(current_time, ".tsv"), sep="\t", col.names=NA, quote=F)
 
   print("check 1")
+
   ## Plot
   tsne1 %>%
     ggplot(aes(x=tSNE_1, y=tSNE_2, color=expr
                )) +
     geom_point(alpha=1, size=.5) +
     scale_color_gradientn(
-      colours = c(color_low, color_mid, color_high),
-      values = c(0, minval, midval, maxval, max_expr),
-      rescaler = function(x, ...) x, oob = identity
+      colours = c(color_low, color_mid, color_high)
+      ,
+      values = c(0, minval, midval, maxval, max(max_expr,1))
+    # ,
+    #   rescaler = function(x, ...) x, oob = identity
     ) +
     xlab(tsne_xlab) +
     ylab(tsne_ylab) +
